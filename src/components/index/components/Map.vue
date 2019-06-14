@@ -46,11 +46,11 @@ export default {
         immediatelyLoadDesiredLevelOfDetail:true,//如果skipLevelOfDetail是true，则只会下载满足最大屏幕空间错误的切片。忽略跳过因子，只加载所需的切片。
       });
       
-      this.viewer.camera.cancelFlight();
+      viewer.camera.cancelFlight();
 
-      this.viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10;//最小变焦距离
+      viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10;//最小变焦距离
       // this.viewer.scene.screenSpaceCameraController.maximumZoomDistance = 500;//最大变焦距离
-      this.viewer.scene.primitives.add(tileset);
+      viewer.scene.primitives.add(tileset);
       //		触发事件以指示已加载满足此帧的屏幕空间错误的所有切片。加载初始视图中的所有切片时，将触发此事件一次。
       //		渲染场景后，在帧结束时触发此事件。
       // this.viewer.zoomTo(tileset);
@@ -91,7 +91,7 @@ export default {
           default:
             break
         }
-        this.viewer.zoomTo(tileset);
+        viewer.zoomTo(tileset);
       });
     }
   },
@@ -99,7 +99,7 @@ export default {
     var url_earth = this.resorceIp +'/static'+ "/earth_tms"
     var url_local = this.resorceIp +'/static'+ "/jxftc_tms"
     var wgs84 = new Cesium.GeographicTilingScheme({ellipsoid: Cesium.Ellipsoid.WGS84});
-    this.viewer = new Cesium.Viewer('map',{
+    viewer = new Cesium.Viewer('map',{
       animation:false,//动画
       baseLayerPicker:false,//图层选择器 选择要显示的地图服务和地形服务
       infoBox:false,//右侧的iframe弹窗信息
@@ -120,7 +120,7 @@ export default {
       }),
     });
     // /*****本地地图*****/
-    this.viewer.imageryLayers.addImageryProvider(
+    viewer.imageryLayers.addImageryProvider(
       new Cesium.UrlTemplateImageryProvider({
         url: url_local+"/{z}/{x}/{y}.jpg",
         credit: "mapname",
@@ -130,13 +130,13 @@ export default {
         rectangle : Cesium.Rectangle.fromDegrees(120.68552222222222,  30.760638888888888, 120.69093611111111,  30.764583333333334)
       })
     );
-    this.viewer.scene.sun.destroy(); //去掉太阳
-    this.viewer.scene.sun = undefined; //去掉太阳
-    this.viewer.scene.moon.destroy(); //去掉月亮
-    this.viewer.scene.moon = undefined; //去掉月亮
+    viewer.scene.sun.destroy(); //去掉太阳
+    viewer.scene.sun = undefined; //去掉太阳
+    viewer.scene.moon.destroy(); //去掉月亮
+    viewer.scene.moon = undefined; //去掉月亮
     // this.viewer.scene.globe.show = false;//地球的显示隐藏
-    this.viewer.scene.backgroundColor = new Cesium.Color(0.0, 0.0, 0.0, 0.0);
-    this.viewer._cesiumWidget._creditContainer.style.display="none";//隐藏版权信息
+    viewer.scene.backgroundColor = new Cesium.Color(0.0, 0.0, 0.0, 0.0);
+    viewer._cesiumWidget._creditContainer.style.display="none";//隐藏版权信息
     this.main_initCesium()
   },
 }

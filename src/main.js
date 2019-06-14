@@ -10,11 +10,12 @@ import 'style/reset.css'
 
 Vue.use(ElementUI)
 var resorceIp = window.location.origin
-var viewer;
+var viewer = null;
 
+window.viewer = viewer
 Vue.config.productionTip = false
 Vue.prototype.axios = axios
-Vue.prototype.viewer = viewer
+// Vue.prototype.viewer = viewer
 Vue.prototype.resorceIp = resorceIp
 Vue.prototype.reqIp = 'http://192.168.8.111:8080/bim'
 

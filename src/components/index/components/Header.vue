@@ -8,26 +8,6 @@
     <div class="h-text">
       <h2>BIM综合管控平台</h2>
     </div>
-    <!-- <div class="meteorological">
-      <div class="time">
-        <dl>
-          <dt>09:22:12</dt>
-          <dd>2019年1月1日 星期日</dd>
-        </dl>
-      </div>
-      <div class="tianqi">
-        <dl>
-          <dt>27/31</dt>
-          <dd>多云转晴</dd>
-        </dl>
-      </div>
-      <div class="kongqi">
-        <dl>
-          <dt>空气指数：优</dt>
-          <dd>PM2.5：16</dd>
-        </dl>
-      </div>
-    </div> -->
   </div>
 </template>
 
