@@ -6,6 +6,7 @@
 
 <script>
 import Cesium from 'cesium/Cesium'
+import Widgets from 'cesium/Widgets/widgets.css'
 export default {
   props: ['mapData'],
   data () {
