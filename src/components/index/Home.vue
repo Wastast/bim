@@ -1,21 +1,27 @@
 <template>
   <div class="home">
-    <index-header></index-header>
-    <index-sideBar></index-sideBar>
-    <index-right-side :mapData='mapData'> </index-right-side>
+    <index-header :titleText="'综合管控平台'"></index-header>
+    <index-sideBar :areaId="areaId"></index-sideBar>
+    <index-right-side :mapData='mapData' @getAreaId="setAreaId"> </index-right-side>
     <index-map :mapData='mapData'> </index-map>
   </div>
 </template>
 
 <script>
 import IndexMap from './components/Map'
-import IndexHeader from './components/Header'
+import IndexHeader from '../public/Header'
 import IndexSideBar from './components/sideBar'
 import IndexRightSide from './components/rightSide'
 export default {
   data () {
     return {
       mapData: [],
+      areaId: '',
+    }
+  },
+  methods: {
+    setAreaId (id) {
+      this.areaId = id
     }
   },
   mounted () {

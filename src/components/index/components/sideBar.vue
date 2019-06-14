@@ -12,6 +12,7 @@
 
 <script>
 export default {
+  props:['areaId'],
   data() {
     return {
       data: [{
@@ -46,12 +47,24 @@ export default {
       }
     };
   },
+  watch: {
+    areaId () {
+      equipment(this.areaId)
+    }
+  },
   methods: {
     // 树形控件点击事件
     handelClick (item) {
       if(!item.children) {
         console.log(item);
       }
+    },
+    // 请求设备资源数据
+    equipment (id) {
+      let url = this.reqIp + `/manage/dimTourBas3dResource/statisticsByTypeWithStatus?areaId=${id}`
+      this.axios.get(url).then(data => {
+        console.log(data);
+      })
     }
   },
   mounted () {

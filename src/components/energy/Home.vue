@@ -1,6 +1,6 @@
 <template>
     <div class="energy">
-
+        这是一个能源界面
     </div>
 </template>
 

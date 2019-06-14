@@ -47,7 +47,7 @@ export default {
       });
       
       viewer.camera.cancelFlight();
-
+      
       viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10;//最小变焦距离
       // this.viewer.scene.screenSpaceCameraController.maximumZoomDistance = 500;//最大变焦距离
       viewer.scene.primitives.add(tileset);
@@ -139,6 +139,10 @@ export default {
     viewer._cesiumWidget._creditContainer.style.display="none";//隐藏版权信息
     this.main_initCesium()
   },
+  beforeDestroy () {
+    viewer.destroy()
+    viewer = null
+  }
 }
 </script>
 <style lang="stylus" scoped>

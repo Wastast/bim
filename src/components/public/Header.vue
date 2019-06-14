@@ -6,14 +6,14 @@
       </div>
     </div>
     <div class="h-text">
-      <h2>BIM综合管控平台</h2>
+      <h2>{{this.titleText}}</h2>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  
+  props: ['titleText'],
 }
 </script>
 
