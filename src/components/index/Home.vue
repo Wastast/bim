@@ -1,9 +1,12 @@
 <template>
   <div class="home">
-    <index-header :titleText="'综合管控平台'"></index-header>
-    <index-sideBar :areaId="areaId"></index-sideBar>
-    <index-right-side :mapData='mapData' @getAreaId="setAreaId"> </index-right-side>
-    <index-map :mapData='mapData'> </index-map>
+    <index-header :titleText="'三维综合管控平台'"></index-header>
+    <index-sideBar></index-sideBar>
+    <index-right-side 
+    :mapData='mapData' 
+    :mapArr="mapArr"
+    > </index-right-side>
+    <index-map> </index-map>
   </div>
 </template>
 
@@ -16,13 +19,11 @@ export default {
   data () {
     return {
       mapData: [],
-      areaId: '',
+      mapArr: []
     }
   },
   methods: {
-    setAreaId (id) {
-      this.areaId = id
-    }
+
   },
   mounted () {
     this.axios.get(this.reqIp + '/manage/dimTourBasArea/getArea').then(data => {

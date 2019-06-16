@@ -10,39 +10,36 @@
       :data="data"
       node-key="id"
     >
-      <span class="custom-tree-node" slot-scope="{ node, data }">
-        <span @click="handelClick(data,node)" @mouseover="mouseTilestChangeColor(data)">{{ node.label }}</span>
+      <span class="custom-tree-node" slot-scope="{ node, data }" style="display: block;width: 100%;">
+        <span 
+        @click="handelClick(data,node)" 
+        @mouseover="mouseTilestChangeColor(data)" 
+        @mouseout="mouseTilestCloseColor(data)" 
+        style="display: block;line-height: 26px;"
+        >{{ node.label }}</span>
       </span>
     </el-tree>
   </div>
 </template>
 
 <script>
+var tileset = 0;
+import { EventBus } from "js/event-bus.js"
+import { mapState,mapMutations } from 'vuex';
 export default {
-  props: ['mapData'],
+  props: ['mapData','mapArr'],
   data() {
     return {
-      data: [{
-        id: 1,
-        label: '一级 1',
-        children: [{
-          id: 4,
-          label: '二级 1-1',
-          children: [{
-            id: 9,
-            label: '三级 1-1-1'
-          }, {
-            id: 10,
-            label: '三级 1-1-2'
-          }]
-        }]
-      }],
+      data: [],
     };
   },
   watch: {
     mapData () {
       this.initData(this.mapData)
     }
+  },
+  computed: {
+    ...mapState(['titlestArr'])
   },
   methods: {
     // 初始化楼层数据
@@ -61,15 +58,28 @@ export default {
     },
     // 树形控件点击事件
     handelClick (item,node) {
-      let id = item.id;
-      this.$emit('getAreaId',id)
+      this.setnowBuild(item)
+      if(item.offset) {
+        if(node.childNodes.length>0 && !node.expanded) {
+          let id = item.id;
+          EventBus.$emit("flyView", {
+            item
+          });
+        }
+        if (node.childNodes.length==0) {
+          let id = item.id;
+          EventBus.$emit("flyView", {
+            item
+          });
+        }
+      }
     },
     // 处理层级递归函数
     deconstructionValue (data) {
       let arr = [];
       for (let key of data) {
-        let {name,id,url3d,center,code,mainView,play,range} = key
-        let obj = {label:name,id,url3d,center,code,mainView,play,range}
+        let {name,id,url3d,center,code,mainView,play,range,offset} = key
+        let obj = {label:name,id,url3d,center,code,mainView,play,range,offset}
         if( key.nodes.length>0 ){
           obj.children = [...this.deconstructionValue(key.nodes)]
         } 
@@ -79,21 +89,27 @@ export default {
     },
     // 移入模型变色
     mouseTilestChangeColor (item) {
-      console.log(item);
+      let titlestArr = viewer.scene.primitives._primitives
+      if(item.offset) {
+        for(let key of titlestArr) {
+          if (key.url.indexOf(item.url3d) != -1) {
+            tileset = key
+            key.style = new Cesium.Cesium3DTileStyle({color:"rgb(127, 59, 8)"})
+          }
+        }
+      }
     },
-
+    // 移出模型取消变色
+    mouseTilestCloseColor (item) {
+      if(tileset) {
+        tileset.style = null
+        tileset = null
+      }
+    },
+    ...mapMutations(['setnowBuild'])
   },
   mounted () {
-    // let url = this.reqIp + '/manage/dimTourBasArea/getArea'
-    // this.axios.get(url).then(data => {
-    //   console.log(data);
-    //   if (data.data.obj) {
-    //     this.initData(data.data.obj)
-    //   }else{
-    //     console.log('数据为空');
-    //   }
-    // })
-  }
+  },
 }
 </script>
 

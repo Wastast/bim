@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import {mapState} from 'vuex';
 export default {
   props:['areaId'],
   data() {
@@ -36,9 +37,9 @@ export default {
       },{
         label: '门禁',
         children: [{
-          label: '二级 3-1',
+          label: '门禁1',
         }, {
-          label: '二级 3-2',
+          label: '门禁2',
         }]
       }],
       defaultProps: {
@@ -47,9 +48,14 @@ export default {
       }
     };
   },
+  computed: {
+    ...mapState(['nowBuild'])
+  },
   watch: {
+    nowBuild () {
+    },
     areaId () {
-      equipment(this.areaId)
+      this.equipment(this.areaId)
     }
   },
   methods: {
@@ -61,10 +67,10 @@ export default {
     },
     // 请求设备资源数据
     equipment (id) {
-      let url = this.reqIp + `/manage/dimTourBas3dResource/statisticsByTypeWithStatus?areaId=${id}`
-      this.axios.get(url).then(data => {
-        console.log(data);
-      })
+      // let url = this.reqIp + `/manage/dimTourBas3dResource/statisticsByTypeWithStatus?areaId=${id}`
+      // this.axios.get(url).then(data => {
+      //   console.log(data);
+      // })
     }
   },
   mounted () {
