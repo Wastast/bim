@@ -4,7 +4,6 @@
     <index-sideBar></index-sideBar>
     <index-right-side 
     :mapData='mapData' 
-    :mapArr="mapArr"
     > </index-right-side>
     <index-map> </index-map>
   </div>
@@ -19,7 +18,6 @@ export default {
   data () {
     return {
       mapData: [],
-      mapArr: []
     }
   },
   methods: {

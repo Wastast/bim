@@ -20,6 +20,7 @@ input,textarea,button,select,a{outline:0 none;border: none;}
 button::-moz-focus-inner,input::-moz-focus-inner{padding:0;border:0}
 mark{background-color:transparent}
 a,ins,s,u,del{text-decoration:none}
+a:hover{text-decoration:none}
 sup,sub{vertical-align:baseline}
 html {overflow: auto;height: 100%;font-size: 50px;-webkit-tap-highlight-color: transparent;-webkit-text-size-adjust: 100%;-ms-text-size-adjust: 100%;}
 body {font-family: "Microsoft Yahei", "Helvetica Neue", Helvetica, sans-serif;color: #333;font-size: .28rem;line-height: 1;-webkit-text-size-adjust: none;}

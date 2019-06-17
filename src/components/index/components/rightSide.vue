@@ -1,11 +1,5 @@
 <template>
   <div class="right-side">
-    <!-- <el-tree 
-      :data="data" 
-      :props="defaultProps" 
-      empty-text="暂无数据"
-      @node-click="handelClick"
-    ></el-tree> -->
     <el-tree
       :data="data"
       node-key="id"
@@ -24,19 +18,18 @@
 
 <script>
 var tileset = 0;
-import { EventBus } from "js/event-bus.js"
 import { mapState,mapMutations } from 'vuex';
+import { EventBus } from 'js/event-bus';
+import CesiumMap from 'js/map.js';
+import {mapid} from 'js/equipment.js';
+var isBuildOrFloor = 'build'
 export default {
-  props: ['mapData','mapArr'],
   data() {
     return {
       data: [],
     };
   },
   watch: {
-    mapData () {
-      this.initData(this.mapData)
-    }
   },
   computed: {
     ...mapState(['titlestArr'])
@@ -58,19 +51,30 @@ export default {
     },
     // 树形控件点击事件
     handelClick (item,node) {
-      this.setnowBuild(item)
-      if(item.offset) {
-        if(node.childNodes.length>0 && !node.expanded) {
-          let id = item.id;
-          EventBus.$emit("flyView", {
-            item
-          });
-        }
-        if (node.childNodes.length==0) {
-          let id = item.id;
-          EventBus.$emit("flyView", {
-            item
-          });
+      if(item.label != '未来科技城') {
+        if(item.offset) {
+          if (isBuildOrFloor != 'build') {
+            isBuildOrFloor = 'build'
+            EventBus.$emit("initMainBuild", {})
+            this.setnowBuild(this.data[0])
+          }
+          // 判断是否扩展
+          if(node.childNodes.length>0 && !node.expanded) {
+            let id = item.id;
+            CesiumMap.flyMain(item.mainView)
+          }
+          // 判断不具备楼层的大楼
+          if (node.childNodes.length==0) {
+            let id = item.id;
+            CesiumMap.flyMain(item.mainView)
+          }
+        }else{
+          if(isBuildOrFloor != 'floor') {
+            isBuildOrFloor = 'floor'
+            EventBus.$emit("initMainFloor", {});
+          }
+          this.setnowBuild(item)
+          EventBus.$emit("tabFloor", {item});
         }
       }
     },
@@ -79,7 +83,9 @@ export default {
       let arr = [];
       for (let key of data) {
         let {name,id,url3d,center,code,mainView,play,range,offset} = key
+
         let obj = {label:name,id,url3d,center,code,mainView,play,range,offset}
+
         if( key.nodes.length>0 ){
           obj.children = [...this.deconstructionValue(key.nodes)]
         } 
@@ -92,13 +98,16 @@ export default {
       let titlestArr = viewer.scene.primitives._primitives
       if(item.offset) {
         for(let key of titlestArr) {
-          if (key.url.indexOf(item.url3d) != -1) {
-            tileset = key
-            key.style = new Cesium.Cesium3DTileStyle({color:"rgb(127, 59, 8)"})
+          if(key.url) {
+            if (key.url.indexOf(item.url3d) != -1) {
+              tileset = key
+              CesiumMap.changeTilestColor(key,'rgb(160, 197, 232)')
+            }
           }
         }
       }
     },
+
     // 移出模型取消变色
     mouseTilestCloseColor (item) {
       if(tileset) {
@@ -109,6 +118,13 @@ export default {
     ...mapMutations(['setnowBuild'])
   },
   mounted () {
+    this.axios.get(this.reqIp + '/manage/dimTourBasArea/getArea').then(data => {
+      if (data.data.obj) {
+        this.initData(data.data.obj)
+      }else{
+        console.log('数据为空');
+      }
+    })
   },
 }
 </script>

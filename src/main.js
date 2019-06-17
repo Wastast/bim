@@ -18,7 +18,6 @@ var viewer = null;
 
 window.viewer = viewer
 window.Cesium = Cesium
-
 Vue.config.productionTip = false
 Vue.prototype.axios = axios
 // Vue.prototype.Cesium = Cesium

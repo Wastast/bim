@@ -3,64 +3,28 @@
     <div id="map">
 
     </div>
-    <div class="mark" v-if="false">
-      <el-progress type="dashboard" :percentage="percentage" :color="colors"></el-progress>
-    </div>
   </div>
 </template>
 
 <script>
-var isBuildOrFloor = 'build'
-// import Cesium from 'cesium/Cesium'
-// import 'cesium/Widgets/widgets.css'
-import { EventBus } from "js/event-bus.js"
 import { mapState } from 'vuex';
+import CesiumNavigation from "cesium-navigation-es6"
+import { EventBus } from 'js/event-bus';
+import CesiumMap from 'js/map.js';
+
 export default {
   props: ['mapData'],
   data () {
     return {
-      percentage: 0,
-      colors: [
-        {color: '#f56c6c', percentage: 20},
-        {color: '#e6a23c', percentage: 40},
-        {color: '#5cb87a', percentage: 60},
-        {color: '#1989fa', percentage: 80},
-        {color: '#6f7ad3', percentage: 100}
-      ]
     }
   },
   watch:{
-    nowBuild () {
-      if(!this.nowBuild.offset){
-        if(isBuildOrFloor != 'floor') {
-          isBuildOrFloor = 'floor'
-          this.init_floor()
-        }
-        this.main_initFloor(this.nowBuild)
-      }else{
-        if (isBuildOrFloor != 'build') {
-          isBuildOrFloor = 'build'
-          viewer.destroy()
-          this.init_NineBuilds()
-        }
-      }
-    }
   },
   computed: {
     ...mapState(['nowBuild'])
   },
   methods: {
-    main_offset(lon,lat,height,tileset){//位置偏移
-      var rotationX = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationX(Cesium.Math.toRadians(0)));
-      var rotationY = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationY(Cesium.Math.toRadians(0)));
-      var rotationZ = Cesium.Matrix4.fromRotationTranslation(Cesium.Matrix3.fromRotationZ(Cesium.Math.toRadians(0)));
-      var position = Cesium.Cartesian3.fromDegrees(lon,lat,height);
-      var mat = Cesium.Transforms.eastNorthUpToFixedFrame(position);
-      Cesium.Matrix4.multiply(mat, rotationX, mat);
-      Cesium.Matrix4.multiply(mat, rotationY, mat);
-      Cesium.Matrix4.multiply(mat, rotationZ, mat);
-      tileset._root.transform = mat;
-    },
+    // 显示楼层
     main_initBuild (url3d,mapId,offset) {
       var url3d = url3d || "/3DTile/jz/dx/tileset.json"
       var mapId = mapId || "30fe9d0f506849349e6b20f685b69dfb"
@@ -80,15 +44,14 @@ export default {
       viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10;//最小变焦距离
       // this.viewer.scene.screenSpaceCameraController.maximumZoomDistance = 500;//最大变焦距离
       viewer.scene.primitives.add(tileset);
-      // viewer.zoomTo(tileset)
       //		触发事件以指示已加载满足此帧的屏幕空间错误的所有切片。加载初始视图中的所有切片时，将触发此事件一次。
       //		渲染场景后，在帧结束时触发此事件。
       tileset.readyPromise.then( ()=>{
-        let {lon,lat,height} = JSON.parse(offset)
         /****tileset偏移位置****/
-        this.main_offset(lon,lat,height,tileset);
+        CesiumMap.main_offset(offset,tileset);
       });
     },
+
     main_initFloor (item) {
       let {url3d,mainView} = item
       var tileset = new Cesium.Cesium3DTileset({
@@ -102,26 +65,15 @@ export default {
       });
       viewer.camera.cancelFlight();
 
-      viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10;//最小变焦距离
-      // this.viewer.scene.screenSpaceCameraController.maximumZoomDistance = 500;//最大变焦距离
+      // viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10;//最小变焦距离
+      // viewer.scene.screenSpaceCameraController.maximumZoomDistance = 500;//最大变焦距离
       viewer.scene.primitives.add(tileset);
-      viewer.zoomTo(tileset)
+      // viewer.zoomTo(tileset)
       tileset.readyPromise.then( ()=>{
-        flyMain(item)
+        CesiumMap.flyMain(item.mainView)
       });
     },
-    flyMain (item) {
-      let {lon,lat,height,heading,pitch} = JSON.parse(item.mainView)
-      let point = Cesium.Cartesian3.fromDegrees(lon, lat, height);
-			viewer.camera.flyTo({
-				destination : point,
-				orientation: {
-					heading : Cesium.Math.toRadians(heading), //默认值
-					pitch : Cesium.Math.toRadians(pitch), // 默认值
-					roll : 0.0 //默认值
-				}
-			});
-    },
+
     // 初始化楼层数据
     init_mapData (data) {
       let map = data.list[0];
@@ -129,10 +81,15 @@ export default {
       for(var key of map.nodes) {
         this.main_initBuild(key.url3d,key.id,key.offset)
       }
-      this.flyMain(map)
+      // 飞入主视角
+      CesiumMap.flyMain(map.mainView)
     },
+
     // 9幢楼加载
     init_NineBuilds () {
+      if(viewer) {
+        viewer.destroy()
+      }
       var url_earth = this.resorceIp +'/static'+ "/earth_tms"
       var url_local = this.resorceIp +'/static'+ "/jxftc_tms"
 
@@ -146,8 +103,10 @@ export default {
         sceneModePicker:false,//3d 2d
         navigationHelpButton:false,//导航
         timeline:false,//时间线
-        fullscreenButton:false,	
+        fullscreenButton:false,	//  全屏按钮
         skyBox:new Cesium.SkyBox({show :false}),
+        // shadows:true,  // 阴影
+        // terrainShadows:Cesium.ShadowMode.RECEIVE_ONLY,  // 
         imageryProvider ://本地地球地图
           new Cesium.UrlTemplateImageryProvider({
             url: url_earth+"/{z}/{x}/{y}.jpg",
@@ -157,7 +116,7 @@ export default {
             maximumLevel: 4
         }),
       });
-      // /*****本地地图*****/
+      /*****本地地图*****/
       viewer.imageryLayers.addImageryProvider(
         new Cesium.UrlTemplateImageryProvider({
           url: url_local+"/{z}/{x}/{y}.jpg",
@@ -175,6 +134,9 @@ export default {
       // this.viewer.scene.globe.show = false;//地球的显示隐藏
       viewer.scene.backgroundColor = new Cesium.Color(0.0, 0.0, 0.0, 0.0);
       viewer._cesiumWidget._creditContainer.style.display="none";//隐藏版权信息
+
+      // 改变操作模式
+      CesiumMap.changeOperational(0,600)
       this.axios.get(this.reqIp + '/manage/dimTourBasArea/getArea').then(data => {
         if (data.data.obj) {
           this.init_mapData(data.data.obj)
@@ -182,10 +144,14 @@ export default {
           console.log('数据为空');
         }
       })
+      this.getPoint('30fe9d0f506849349e6b20f685b69dfb')
+      this.compass()
     },
     // 初始化楼层
     init_floor () {
-      viewer.destroy()
+      if(viewer) {
+        viewer.destroy()
+      }
       viewer = new Cesium.Viewer('map',{
         animation:false,//动画
         baseLayerPicker:false,//图层选择器 选择要显示的地图服务和地形服务
@@ -211,6 +177,70 @@ export default {
       viewer.scene.globe.show = false;//地球的显示隐藏
       viewer.scene.backgroundColor = new Cesium.Color(0.0, 0.0, 0.0, 0.0);
       viewer._cesiumWidget._creditContainer.style.display="none";//隐藏版权信息
+      // 改变操作模式
+      CesiumMap.changeOperational(0,600)
+      this.compass()
+    },
+    // 指南针
+    compass () {
+      var options = {};
+      // 用于在使用重置导航重置地图视图时设置默认视图控制。接受的值是Cesium.Cartographic 和 Cesium.Rectangle.
+      options.defaultResetView = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
+      // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
+      options.enableCompass= true;
+      // 用于启用或禁用缩放控件。true是启用，false是禁用。默认值为true。如果将选项设置为false，则缩放控件将不会添加到地图中。
+      options.enableZoomControls= true;
+      // 用于启用或禁用距离图例。true是启用，false是禁用。默认值为true。如果将选项设置为false，距离图例将不会添加到地图中。
+      options.enableDistanceLegend= false;
+      // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
+      options.enableCompassOuterRing= false;
+      CesiumNavigation(viewer, options);
+    },
+    getPoint (id) {
+      let url = this.reqIp + `/manage/dimTourBas3dResource/findPointByPageCascade?areaId=${id}`
+      this.axios.get(url).then(data => {
+        var data = data.data
+        if(data.res==1) {
+          // 循环数据描绘点位
+          for(var key in data.obj) {
+            if(data.obj[key]!= null && data.obj[key].length>0) {
+              var item = data.obj[key];
+              item.forEach( e =>{
+                this.point_drawPoint(e,key);
+              });
+            }
+          }
+        }else{
+          alert('获取数据失败');
+        }
+      })
+    },
+    point_drawPoint(resource,type){
+      let billboardGraphics = new Cesium.BillboardGraphics({
+        image : this.resorceIp + "/static/upload"+resource.icon, //属性指定的图像、URI或帆布用于广告牌。
+        show : true, // 一个布尔属性指定广告牌的可见性。
+        pixelOffset : new Cesium.Cartesian2(0,0), // 一个Cartesian2属性指定像素偏移量。
+        eyeOffset : new Cesium.Cartesian3(0.0, 0.0, 0.0), //一个Cartesian3属性指定偏移量。
+        horizontalOrigin : Cesium.HorizontalOrigin.CENTER, //一个属性指定HorizontalOrigin。
+        verticalOrigin : Cesium.VerticalOrigin.CENTER, //一个属性指定VerticalOrigin。
+        scale : 1.0, //一个数值属性指定适用于图像大小的规模。
+        color : Cesium.Color.WHITE, //属性指定色彩Color的形象。
+        //rotation : Cesium.Math.PI, //一个数值属性指定关于alignedAxis旋转。
+        alignedAxis : Cesium.Cartesian3.ZERO, //一个Cartesian3属性指定单位向量旋转轴。
+        width : parseFloat(resource.iconWidth), // default: undefined
+        height : parseFloat(resource.iconHeight), // default: undefined
+        sizeInMeters:true//是否以米为单位 如果以米
+      });//广告牌
+      let html = '';
+      let entity = viewer.entities.add({
+        id:	resource.id,
+        name : type,
+        position: {
+          x:resource.x,y:resource.y,z:resource.z
+        },//Cesium.Cartesian3.fromDegrees(-75.59777, 40.03883,3000), 位置
+        billboard: billboardGraphics,
+        description:html
+      });
     }
   },
   mounted () {
@@ -221,8 +251,17 @@ export default {
     viewer = null
   },
   created () {
-    EventBus.$on("flyView", ({item})=>{
-      this.flyMain(item)
+    EventBus.$on("initMainBuild", ({item})=>{
+      this.init_NineBuilds()
+    });
+
+    EventBus.$on("initMainFloor", ({item})=>{
+      this.init_floor()
+    });
+
+    EventBus.$on("tabFloor", ({item})=>{
+      this.main_initFloor(item)
+      this.getPoint(item.id)
     });
   }
 }
