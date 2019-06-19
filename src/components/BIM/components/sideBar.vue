@@ -17,7 +17,7 @@
       <ul class="list" v-show="equipmentArr">
         <li class="item" v-for="item of equipmentArr" :key="item.id" @click="getPoint(item.id)">
           <div class="img-box">
-            <img :src="'http://192.168.8.111:8080/bim' + '/upload' + item.icon" alt="">
+            <img :src="this.resorceIp + '/upload' + item.icon" alt="">
           </div>
           <span class="i-text">{{ item.name }}({{item.statusName}})</span>
         </li>

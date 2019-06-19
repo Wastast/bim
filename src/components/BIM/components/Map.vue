@@ -3,6 +3,14 @@
     <div id="map">
 
     </div>
+    <div class="mark" v-show="loading">
+      <div class="sk-double-bounce" style="position: absolute;top: 50%;left: 50%;transform: translate(-50%,-50%);">
+        <ul>
+          <li class="sk-child sk-double-bounce-1"></li>
+          <li class="sk-child sk-double-bounce-2"></li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -16,6 +24,7 @@ export default {
   props: ['mapData'],
   data () {
     return {
+      loading: true
     }
   },
   watch:{
@@ -34,11 +43,12 @@ export default {
   methods: {
     // 显示楼层
     main_initBuild (url3d,mapId,offset) {
+      this.loading = true
       var url3d = url3d || "/3DTile/jz/dx/tileset.json"
       var mapId = mapId || "30fe9d0f506849349e6b20f685b69dfb"
       var offset = offset || '{"lon":120.6886555,"lat":30.7629445,"height":-24.977567649375775}'
       var tileset = new Cesium.Cesium3DTileset({
-        url: this.resorceIp +'/static'+ url3d,
+        url: this.resorceIp + url3d,
         maximumScreenSpaceError: 2,        //最大的屏幕空间误差
         maximumNumberOfLoadedTiles: 10000,  //最大加载瓦片个数
         skipLevelOfDetail : true, //开启跳级加载
@@ -61,9 +71,16 @@ export default {
     },
 
     main_initFloor (item) {
+      if(viewer.scene.primitives._primitives[0]){
+        if(viewer.scene.primitives._primitives[0].url) {
+          var tileset1 = viewer.scene.primitives._primitives[0];
+          viewer.scene.primitives.removeAndDestroy(tileset1)
+        }
+      }
+      this.loading = true
       let {url3d,mainView} = item
       var tileset = new Cesium.Cesium3DTileset({
-        url: this.resorceIp +'/static'+ url3d,
+        url: this.resorceIp + url3d,
         maximumScreenSpaceError: 2,        //最大的屏幕空间误差
         maximumNumberOfLoadedTiles: 10000,  //最大加载瓦片个数
         skipLevelOfDetail : true, //开启跳级加载
@@ -76,8 +93,15 @@ export default {
       // viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10;//最小变焦距离
       // viewer.scene.screenSpaceCameraController.maximumZoomDistance = 500;//最大变焦距离
       viewer.scene.primitives.add(tileset);
-      // viewer.zoomTo(tileset)
-      tileset.readyPromise.then( ()=>{
+      viewer.zoomTo(tileset)
+      tileset.initialTilesLoaded.addEventListener( () => {
+        this.loading = false
+
+        var model=new Cesium.Entity({
+          position:JSON.parse(this.nowBuild.center),
+        });
+        viewer.trackedEntity = model;
+
         CesiumMap.flyMain(item.mainView)
       });
     },
@@ -91,17 +115,16 @@ export default {
       }
       // 飞入主视角
       CesiumMap.flyMain(map.mainView)
+      this.loading = false
     },
 
     // 9幢楼加载
     init_NineBuilds () {
-      console.log('我被调用了吗');
       if(viewer) {
-        console.log('我被删除了吗');
         viewer.destroy()
       }
-      var url_earth = this.resorceIp +'/static'+ "/earth_tms"
-      var url_local = this.resorceIp +'/static'+ "/jxftc_tms"
+      var url_earth = this.resorceIp + "/earth_tms"
+      var url_local = this.resorceIp + "/jxftc_tms"
 
       var wgs84 = new Cesium.GeographicTilingScheme({ellipsoid: Cesium.Ellipsoid.WGS84});
       viewer = new Cesium.Viewer('map',{
@@ -187,6 +210,30 @@ export default {
       viewer.scene.globe.show = false;//地球的显示隐藏
       viewer.scene.backgroundColor = new Cesium.Color(0.0, 0.0, 0.0, 0.0);
       viewer._cesiumWidget._creditContainer.style.display="none";//隐藏版权信息
+      /******禁止视角钻入底下******/
+      var mousePosition,startMousePosition;
+      var handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+      handler.setInputAction(function(movement) { 
+        mousePosition=startMousePosition= Cesium.Cartesian3.clone(movement.position);
+        handler.setInputAction(function(movement) {
+          mousePosition = movement.endPosition;
+          var y = mousePosition.y - startMousePosition.y;
+          if(y>0){
+            // viewer.scene.screenSpaceCameraController.enableTilt = true;
+            viewer.scene.screenSpaceCameraController.enableRotate = true;
+          }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+      }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+      // viewer.camera.setView({
+      // 	destination: Cesium.Cartesian3.fromDegrees(116.36115,39.916927,100000)
+      // });
+      viewer.clock.onTick.addEventListener(function () {        
+        if(viewer.camera.pitch > 0){
+          viewer.scene.screenSpaceCameraController.enableRotate = false;
+          viewer.scene.screenSpaceCameraController.enableTilt = false;
+        }
+      }); 
+      /******禁止视角钻入底下******/
       // 改变操作模式
       CesiumMap.changeOperational(0,600)
       this.compass()
@@ -227,7 +274,7 @@ export default {
     },
     point_drawPoint(resource,type){
       let billboardGraphics = new Cesium.BillboardGraphics({
-        image : this.resorceIp + "/static/upload"+resource.icon, //属性指定的图像、URI或帆布用于广告牌。
+        image : this.resorceIp + "/upload"+resource.icon, //属性指定的图像、URI或帆布用于广告牌。
         show : true, // 一个布尔属性指定广告牌的可见性。
         pixelOffset : new Cesium.Cartesian2(0,0), // 一个Cartesian2属性指定像素偏移量。
         eyeOffset : new Cesium.Cartesian3(0.0, 0.0, 0.0), //一个Cartesian3属性指定偏移量。
@@ -251,7 +298,7 @@ export default {
         billboard: billboardGraphics,
         description:html
       });
-    }
+    },
   },
   mounted () {
     this.init_NineBuilds();
@@ -295,5 +342,5 @@ export default {
     z-index 9
     width 100vw
     height 100vh
-    background-color red
+    background-color rgba(0,0,0,1)
 </style>

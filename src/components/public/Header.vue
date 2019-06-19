@@ -2,7 +2,7 @@
   <div class="header">
     <div class="logo">
       <div class="img-box">
-        <img :src="this.resorceIp + '/static/img/earth.png' " alt="">
+        <img :src="this.resorceIp + '/img/earth.png' " alt="">
       </div>
     </div>
     <div class="h-text">

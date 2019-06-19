@@ -96,7 +96,7 @@ export default {
       if(data.status == 0) {
         this.openAlert('该设备离线,无法播放')
       }else{
-        let html = `<video src="${this.resorceIp + '/static/video/test.mp4'}" width="700" height="400" controls></video>`
+        let html = `<video src="${this.resorceIp + '/video/test.mp4'}" width="700" height="400" controls></video>`
         this.openBox(html,data.name)
       }
     },
@@ -271,7 +271,7 @@ export default {
 .pop-box 
   position absolute
   left: 100px
-  z-index 9
+  z-index 8
   top: 100px;
   .top
     width: 100%;

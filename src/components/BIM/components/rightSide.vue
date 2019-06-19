@@ -3,6 +3,7 @@
     <el-tree
       :data="data"
       node-key="id"
+      v-loading="loading"
     >
       <span class="custom-tree-node" slot-scope="{ node, data }" style="display: block;width: 100%;">
         <span 
@@ -26,6 +27,7 @@ export default {
   data() {
     return {
       data: [],
+      loading: true
     };
   },
   watch: {
@@ -47,6 +49,7 @@ export default {
       var datas = this.deconstructionValue(value.list[0].nodes)
       arr.push(...datas)
       this.data = arr
+      this.loading = false
     },
     // 树形控件点击事件
     handelClick (item,node) {
@@ -137,6 +140,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.right-side >>> .el-loading-mask {
+  rgba(255,255,255,1);
+}
 .right-side
   position absolute
   top:40px
