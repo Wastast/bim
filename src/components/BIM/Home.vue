@@ -6,6 +6,7 @@
     :mapData='mapData' 
     > </index-right-side>
     <index-map> </index-map>
+    <index-pop></index-pop>
   </div>
 </template>
 
@@ -14,7 +15,9 @@ import IndexMap from './components/Map'
 import IndexHeader from '../public/Header'
 import IndexSideBar from './components/sideBar'
 import IndexRightSide from './components/rightSide'
+import IndexPop from './components/Pop';
 export default {
+  name: 'BIMHome',
   data () {
     return {
       mapData: [],
@@ -36,7 +39,8 @@ export default {
     IndexMap,
     IndexSideBar,
     IndexRightSide,
-    IndexHeader
+    IndexHeader,
+    IndexPop
   }
 }
 </script>
@@ -47,5 +51,6 @@ export default {
     height 100vh
     background-color rgba(24,29,39,1);
     position relative
+    overflow hidden
   }
 </style>

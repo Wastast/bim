@@ -7,6 +7,7 @@ export default new Vuex.Store({
     nowBuild:{
       id:"30fe9d0f506849349e6b20f685b69dfb",
     },
+    isBuildOrFloor: 'build'
   },
   mutations: {
     setTitlest (state, data) {
@@ -14,6 +15,9 @@ export default new Vuex.Store({
     },
     setnowBuild (state, data) {
       state.nowBuild = data
+    },
+    setIsBuildOrFloor (state, data) {
+      state.isBuildOrFloor = data
     }
   }
 })

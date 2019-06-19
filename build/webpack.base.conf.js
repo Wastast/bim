@@ -33,6 +33,7 @@ module.exports = {
       '@': resolve('src'),
       'style': resolve('src/assets/css'),
       'js': resolve('src/assets/js'),
+      'img':resolve('src/assets/img'),
       // 设置cesium的别名以及路径
       cesium: path.resolve(__dirname, cesiumSource)
     }

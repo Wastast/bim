@@ -19,9 +19,17 @@ export default {
     }
   },
   watch:{
+    // isBuildOrFloor () {
+    //   console.log(this.isBuildOrFloor);
+    //   if(this.isBuildOrFloor == 'build') { // 当前显示的是楼
+    //     this.init_NineBuilds()
+    //   }else{  // 当前显示的是层
+    //     this.init_floor()
+    //   }
+    // }
   },
   computed: {
-    ...mapState(['nowBuild'])
+    ...mapState(['nowBuild','isBuildOrFloor'])
   },
   methods: {
     // 显示楼层
@@ -87,7 +95,9 @@ export default {
 
     // 9幢楼加载
     init_NineBuilds () {
+      console.log('我被调用了吗');
       if(viewer) {
+        console.log('我被删除了吗');
         viewer.destroy()
       }
       var url_earth = this.resorceIp +'/static'+ "/earth_tms"
@@ -134,16 +144,16 @@ export default {
       // this.viewer.scene.globe.show = false;//地球的显示隐藏
       viewer.scene.backgroundColor = new Cesium.Color(0.0, 0.0, 0.0, 0.0);
       viewer._cesiumWidget._creditContainer.style.display="none";//隐藏版权信息
-
       // 改变操作模式
       CesiumMap.changeOperational(0,600)
+
       this.axios.get(this.reqIp + '/manage/dimTourBasArea/getArea').then(data => {
         if (data.data.obj) {
           this.init_mapData(data.data.obj)
         }else{
           console.log('数据为空');
         }
-      })
+      });
       this.getPoint('30fe9d0f506849349e6b20f685b69dfb')
       this.compass()
     },
@@ -251,11 +261,11 @@ export default {
     viewer = null
   },
   created () {
-    EventBus.$on("initMainBuild", ({item})=>{
+    EventBus.$on("initMainBuild", ()=>{
       this.init_NineBuilds()
     });
 
-    EventBus.$on("initMainFloor", ({item})=>{
+    EventBus.$on("initMainFloor", ()=>{
       this.init_floor()
     });
 

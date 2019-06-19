@@ -7,10 +7,11 @@
     empty-text="'暂无数据'"
     @node-click="handelClick"
   ></el-tree>
+
   <transition name="slide-fade">
     <div class="valueSide" v-if="show">
       <div class="title">
-        <h4>楼宇监控</h4>
+        <h4>{{title}}</h4>
         <a href="javascript:;" @click="handleHideOrShow()">×</a>
       </div>
       <ul class="list" v-show="equipmentArr">
@@ -49,6 +50,15 @@ export default {
       },{
         label: '水浸',
         typeName: 'sensor'
+      },{
+        label: '照明',
+        typeName: 'light'
+      },{
+        label: '变电房',
+        typeName: 'substation'
+      },{
+        label: '门禁',
+        typeName: 'entranceGuard'
       }],
       defaultProps: {
         children: 'children',
@@ -56,6 +66,7 @@ export default {
       },
       equipmentArr: [],
       show: false,
+      title: '',
     };
   },
   computed: {
@@ -71,6 +82,7 @@ export default {
     // 树形控件点击事件
     handelClick (item) {
       if(!item.children) {
+        this.title = item.label
         this.equipment(item.typeName)
       }
     },
@@ -78,8 +90,12 @@ export default {
     equipment (typeName) {
       let url = this.reqIp + `/manage/dimTourBas3dResource/findPointByPageCascade?areaId=${this.nowBuild.id}&typeName=${typeName}`
       this.axios.get(url).then(data => {
-        this.equipmentArr = data.data.obj[typeName]
-        this.show = true
+        if(data.data.res) {
+          this.equipmentArr = data.data.obj[typeName]
+          this.show = true
+        }else{
+          
+        }
       })
     },
     handleHideOrShow () {
@@ -88,22 +104,7 @@ export default {
 
     getPoint (id) {
       CesiumMap.addSelectBox(id)
-      // let entity = viewer.entities.getById(id);
-      // let model2 = new Cesium.Entity({
-			// 	position:entity._position._value
-      // })
-      // if(viewer._selectedEntity !== model2 && model2) {
-      //   viewer._selectedEntity = model2;
-      //   var selectionIndicatorViewModel = viewer._selectionIndicator ? viewer._selectionIndicator.viewModel : undefined;
-      //   if (model2) {
-      //     if (selectionIndicatorViewModel) {
-      //       selectionIndicatorViewModel.animateAppear();//为指标设置动画以引起对选择的注意。
-      //     }
-      //   } else if (selectionIndicatorViewModel) {
-      //     selectionIndicatorViewModel.animateDepart();//为指标设置动画以释放选择。
-      //   }
-      //   viewer._selectedEntityChanged.raiseEvent(model2);
-      // }
+      viewer.flyTo(viewer.entities.getById(id))
     }
   },
   mounted () {
@@ -135,7 +136,7 @@ export default {
   padding-top: 20px
   width 200px
   background #fff
-  z-index 9999
+  z-index 10
   filter: drop-shadow(0 0 5px rgba(0,0,0,0.3));
   .valueSide
     position absolute
@@ -164,12 +165,12 @@ export default {
           position: absolute;
           height: 1px;
           width: 90%;
-          background: red;
+          background: rgba(51,51,51,.2);
           bottom: 0;
           left: 50%;
           transform: translateX(-50%);
         &:hover
-          background-color red
+          background-color rgba(51,51,51,.1);
         .img-box
           margin-top: 5px;
           margin-left: 10px;

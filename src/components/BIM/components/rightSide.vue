@@ -22,7 +22,6 @@ import { mapState,mapMutations } from 'vuex';
 import { EventBus } from 'js/event-bus';
 import CesiumMap from 'js/map.js';
 import {mapid} from 'js/equipment.js';
-var isBuildOrFloor = 'build'
 export default {
   data() {
     return {
@@ -32,7 +31,7 @@ export default {
   watch: {
   },
   computed: {
-    ...mapState(['titlestArr'])
+    ...mapState(['titlestArr','isBuildOrFloor'])
   },
   methods: {
     // 初始化楼层数据
@@ -40,8 +39,8 @@ export default {
       this.data = [];
       let arr = [];
       for (let key of value.list) {
-        let {name,id,url3d,center,code,mainView,play,range} = key
-        let obj = {label:name,id,url3d,center,code,mainView,play,range}
+        let {name,id,url3d,center,code,mainView,play,range,offset} = key
+        let obj = {label:name,id,url3d,center,code,mainView,play,range,offset}
         arr.push(obj);
       }
       this.data = arr;
@@ -51,31 +50,33 @@ export default {
     },
     // 树形控件点击事件
     handelClick (item,node) {
-      if(item.label != '未来科技城') {
-        if(item.offset) {
-          if (isBuildOrFloor != 'build') {
-            isBuildOrFloor = 'build'
-            EventBus.$emit("initMainBuild", {})
-            this.setnowBuild(this.data[0])
-          }
-          // 判断是否扩展
-          if(node.childNodes.length>0 && !node.expanded) {
-            let id = item.id;
-            CesiumMap.flyMain(item.mainView)
-          }
-          // 判断不具备楼层的大楼
-          if (node.childNodes.length==0) {
-            let id = item.id;
-            CesiumMap.flyMain(item.mainView)
-          }
-        }else{
-          if(isBuildOrFloor != 'floor') {
-            isBuildOrFloor = 'floor'
-            EventBus.$emit("initMainFloor", {});
-          }
-          this.setnowBuild(item)
-          EventBus.$emit("tabFloor", {item});
+      if(item.offset) {  // 点击的是否是楼层
+        if (item.label == '未来科技城' && this.isBuildOrFloor != 'build') {
+          this.setIsBuildOrFloor('build');
+          EventBus.$emit("initMainBuild", {})
+          this.setnowBuild(this.data[0])
         }
+        if(item.laber != '未来科技城') {
+          if(this.isBuildOrFloor == 'build') {
+            // 判断是否扩展
+            if(node.childNodes.length>0 && !node.expanded) {
+              let id = item.id;
+              CesiumMap.flyMain(item.mainView)
+            }
+            // 判断不具备楼层的大楼
+            if (node.childNodes.length==0) {
+              let id = item.id;
+              CesiumMap.flyMain(item.mainView)
+            }
+          }
+        }
+      }else{
+        if(this.isBuildOrFloor != 'floor') {
+          this.setIsBuildOrFloor('floor');
+          EventBus.$emit("initMainFloor", {});
+        }
+        this.setnowBuild(item)
+        EventBus.$emit("tabFloor", {item});
       }
     },
     // 处理层级递归函数
@@ -96,26 +97,32 @@ export default {
     // 移入模型变色
     mouseTilestChangeColor (item) {
       let titlestArr = viewer.scene.primitives._primitives
-      if(item.offset) {
-        for(let key of titlestArr) {
-          if(key.url) {
-            if (key.url.indexOf(item.url3d) != -1) {
-              tileset = key
-              CesiumMap.changeTilestColor(key,'rgb(160, 197, 232)')
+      if(this.isBuildOrFloor == 'build' && item.label != '未来科技城') {
+        var coordinate = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, (JSON.parse(item.center)))
+        if(coordinate) {
+          EventBus.$emit("popCoordinate", {coordinate,item});
+        }
+        if(item.offset) {
+          for(let key of titlestArr) {
+            if(key.url) {
+              if (key.url.indexOf(item.url3d) != -1) {
+                tileset = key
+                CesiumMap.changeTilestColor(key,'rgb(160, 197, 232)')
+              }
             }
           }
         }
       }
     },
-
     // 移出模型取消变色
     mouseTilestCloseColor (item) {
       if(tileset) {
+        EventBus.$emit("popCoordinate", {coordinate:null});
         tileset.style = null
         tileset = null
       }
     },
-    ...mapMutations(['setnowBuild'])
+    ...mapMutations(['setnowBuild','setIsBuildOrFloor'])
   },
   mounted () {
     this.axios.get(this.reqIp + '/manage/dimTourBasArea/getArea').then(data => {
@@ -138,6 +145,6 @@ export default {
   padding-top: 20px
   width 200px
   background #fff
-  z-index 9999
+  z-index 10
 </style>
 

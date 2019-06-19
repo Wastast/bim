@@ -6,7 +6,8 @@ Vue.use(Router)
 
 export default new Router({
   routes: [
-    { path:'/',name: 'IndexHome', component:()=> import('../components/index/Home.vue') },
+    { path:'/',name: 'guideHome', component:()=> import('../components/Guide/Home.vue') },
+    { path:'/bim',name: 'BIMHome', component:()=> import('../components/BIM/Home.vue') },
     { path:'/energy',name: 'EnergyHome', component:()=> import('../components/energy/Home.vue')}
   ]
 })
